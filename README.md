@@ -20,10 +20,28 @@ Use SAM CLI to deploy the template in this repo. Build the application:
 sam build
 ```
 
-Use the `--guided` option to deploy. Specific stack name as `lambda-async-metrics`. Accept default values for the rest.
+Use the `--guided` option to deploy. 
 
 ```bash
 sam deploy --guided --region $REGION
+```
+
+> :warning: Specify stack name as `lambda-async-metrics`. Accept default values for the rest.
+
+```bash
+Configuring SAM deploy
+======================
+
+  Setting default arguments for 'sam deploy'
+  =========================================
+  Stack Name []: lambda-async-metrics
+  AWS Region [us-east-2]: 
+  Confirm changes before deploy [y/N]: 
+  Allow SAM CLI IAM role creation [Y/n]: 
+  Disable rollback [y/N]: 
+  Save arguments to configuration file [Y/n]: 
+  SAM configuration file [samconfig.toml]: 
+  SAM configuration environment [default]: 
 ```
 
 Save the name of the function in an environment variable.
@@ -31,7 +49,7 @@ Save the name of the function in an environment variable.
 ```bash
 FUNCTION_NAME=$(aws cloudformation describe-stacks \
   --region $REGION \
-  --stack-name lambda-async-metric \
+  --stack-name lambda-async-metrics \
   --query 'Stacks[0].Outputs[?OutputKey==`HelloWorldFunctionResourceName`].OutputValue' --output text)
 ```
 
@@ -66,7 +84,7 @@ aws lambda invoke \
 
 ### Scenario 2: Troubleshooting delays because of concurrency limits
 
-1. Set the function's reserved concurrency to 1 and timeout to 100 seconds in `template.yaml`:
+1. Set the function's reserved concurrency to 1 in `template.yaml`:
 
 ```yaml
 Resources:
@@ -145,7 +163,7 @@ for i in {1..2}; do aws lambda invoke \
   --invocation-type Event out_file.txt; done
 ```
 
-In a real world scenario, you would suspect a missing event if the processing did not occur as indicated by downstream actions of function execution.Begin by looking at AsyncEventsReceived to confirm events made it to Lambda. If this matches what you expect (2 in this case), the next step is to look at `AsyncEventsDropped` metric. You will have to wait for a minute to see data points for this.
+In a real world scenario, you would suspect a missing event if the processing did not occur as indicated by downstream actions of function execution.Begin by looking at `AsyncEventsReceived` to confirm events made it to Lambda. If this matches what you expect (2 in this case), the next step is to look at `AsyncEventsDropped` metric. You will have to wait for a minute to see data points for this.
 
 ![Dropped event due to expiry](images/dropped_event_due_to_expiry.png "Dropped event due to expiry")
 
@@ -153,7 +171,7 @@ Look at the `AsyncEventAge` metric to verify delays in processing.
 
 ![Increasing AsyncEventAge due to retries](images/increasing_age_due_to_retries.png "Increasing AsyncEventAge due to retries")
 
-Event age increases from 37 ms to a maximum of 30,086 ms (around half a minute). If the event has expired when Lambda polls the queue, it will drop it and not emit AsyncEventAge metric. This is why we only see the max event age of half a minute and not a value closer to the event age configuration of 1 minute. We can do a sanity check with Fig 6b that shows that after the retry when event age is half minute, next retry is around the minute mark. At this point, event is dropped in this scenario and metric is not published.
+Event age increases from 37 ms to a maximum of 30,086 ms (around half a minute). If the event has expired when Lambda polls the queue, it will drop it and not emit `AsyncEventAge` metric. This is why we only see the max event age of half a minute and not a value closer to the event age configuration of 1 minute. We can do a sanity check that shows that after the retry when event age is half minute, next retry is around the minute mark. At this point, event is dropped in this scenario and metric is not published.
 
 Check if the function was throttled next. The data is similar to scenario 2 where there were 6 throttles (5 retries) before event was dropped. The data points are distributed a little differently with 4 in the first 1 minute interval and 2 in the next.
 
