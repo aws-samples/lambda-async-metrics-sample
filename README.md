@@ -20,21 +20,28 @@ Use SAM CLI to deploy the template in this repo. Build the application:
 sam build
 ```
 
-Use the `--guided` option to deploy. Specific stack name as `lambda-async-metric`. Accept default values for the rest.
+Use the `--guided` option to deploy. Specific stack name as `lambda-async-metrics`. Accept default values for the rest.
 
 ```bash
 sam deploy --guided --region $REGION
 ```
 
-Copy the function name from the output of `sam deploy`. It should be in the format `async-lambda-metrics-HelloWorldFunction-`.
+Save the name of the function in an environment variable.
+
+```bash
+FUNCTION_NAME=$(aws cloudformation describe-stacks \
+  --region $REGION \
+  --stack-name lambda-async-metric \
+  --query 'Stacks[0].Outputs[?OutputKey==`HelloWorldFunctionResourceName`].OutputValue' --output text)
+```
 
 ## Troubleshooting scenarios
-This repo covers 4 troubleshooting scenarios. The analysis for the first two are covered in depth in the blog. We will include only the instructions to configure and test the scenarios here. There are dependencies between the scenarios and they must be executed sequentially.
+This repo covers 4 troubleshooting scenarios. The analysis for the first two is covered in depth in the blog. We will include only the instructions to configure and test them here. There are dependencies between the scenarios and steps must be executed sequentially.
 
 ### Scenario 1: Troubleshooting delays due to function errors
 Set up and test instructions below.
 
-1. Edit the function code in `async-metrics-hello-world.py` to raise an exception:
+1. Edit the function code in `hello_world/async-metrics-hello-world.py` to raise an exception:
 
 ```python
 def handler(event, context):
@@ -48,12 +55,12 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-3. Finally, invoke the function asynchronously. Replace `function-name` with the value from `sam deploy`:
+1. Finally, invoke the function asynchronously:
 
 ```bash
 aws lambda invoke \
   --region $REGION \
-  --function-name <function-name> \
+  --function-name $FUNCTION_NAME \
   --invocation-type Event out_file.txt
 ```
 
@@ -92,12 +99,12 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-5. Invoke the function twice in succession from the command line. Replace `function-name` with the value from `sam deploy`: 
+1. Invoke the function twice in succession from the command line: 
 
 ```bash
 for i in {1..2}; do aws lambda invoke \
   --region $REGION \
-  --function-name <function-name> \
+  --function-name $FUNCTION_NAME \
   --invocation-type Event out_file.txt; done
 ```
 
@@ -114,7 +121,7 @@ Resources:
       CodeUri: hello_world/
       Handler: app.lambda_handler
       Runtime: python3.9
-      Timeout: 3
+      Timeout: 100
       MemorySize: 128
       Architectures:
       - x86_64
@@ -134,7 +141,7 @@ sam build && sam deploy
 ```bash
 for i in {1..2}; do aws lambda invoke \
   --region $REGION \
-  --function-name <function-name> \
+  --function-name $FUNCTION_NAME \
   --invocation-type Event out_file.txt; done
 ```
 
@@ -168,19 +175,21 @@ Resources:
       CodeUri: hello_world/
       Handler: app.lambda_handler
       Runtime: python3.9
-      Timeout: 3
+      Timeout: 100
       MemorySize: 128
       Architectures:
       - x86_64
       ReservedConcurrentExecutions: 0
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 60
 ```
 
-2. Invoke the function asynchronously. Replace `function-name` with the value from `sam deploy`:
+1. Invoke the function asynchronously:
 
 ```bash
 aws lambda invoke \
   --region $REGION \
-  --function-name <function-name> \
+  --function-name $FUNCTION_NAME \
   --invocation-type Event out_file.txt
 ```
 
@@ -188,7 +197,7 @@ The trigger for troubleshooting is again a missing event. You will inspect Async
 
 ![Event dropped for 0 reserved concurrency](images/event_dropped_0_concurrency.png "Event dropped for 0 reserved concurrency")
 
-There will be no data points for `AsyncEventAge`. As explained in scenario 3, this metric is published only when Lambda attempts to deliver it to the function. In this case Lambda will see a reserved concurrency of 0 and drops it right away.
+There will be no data points for `AsyncEventAge`. As explained in scenario 3, this metric is published only when Lambda attempts to deliver it to the function. In this case Lambda will see a reserved concurrency of 0 and drop it.
 
 ![No data points for AsyncEventAge](images/no_datapoints_event_age.png "No data points for AsyncEventAge")
 
@@ -202,7 +211,7 @@ This concludes the troubleshooting scenarios.
 1. Delete the stack created by SAM template. Choose default option for the prompts.
 
 ```bash
-sam delete <stack-name> --region $REGION
+sam delete lambda-async-metrics --region $REGION
 ```
 
 ## Security
