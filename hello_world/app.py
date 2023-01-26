@@ -6,4 +6,4 @@
 def lambda_handler(event, context):
     # time.sleep(90)
     print("Hello World from AWS Lambda")
-    raise Exception("Exception from Lambda function")
+    # raise Exception("Exception from Lambda function")
