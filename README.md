@@ -26,6 +26,8 @@ Use the `--guided` option to deploy. Specific stack name as `lambda-async-metric
 sam deploy --guided --region $REGION
 ```
 
+Copy the function name from the output of `sam deploy`. It should be in the format `async-lambda-metrics-HelloWorldFunction-`.
+
 ## Troubleshooting scenarios
 This repo covers 4 troubleshooting scenarios. The analysis for the first two are covered in depth in the blog. We will include only the instructions to configure and test the scenarios here. There are dependencies between the scenarios and they must be executed sequentially.
 
@@ -46,12 +48,12 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-3. Finally, invoke the function asynchronously:
+3. Finally, invoke the function asynchronously. Replace `function-name` with the value from `sam deploy`:
 
 ```bash
 aws lambda invoke \
   --region $REGION \
-  --function-name async-metrics-function \
+  --function-name <function-name> \
   --invocation-type Event out_file.txt
 ```
 
@@ -90,12 +92,12 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-5. Invoke the function twice in succession from the command line: 
+5. Invoke the function twice in succession from the command line. Replace `function-name` with the value from `sam deploy`: 
 
 ```bash
 for i in {1..2}; do aws lambda invoke \
   --region $REGION \
-  --function-name async-metrics-function \
+  --function-name <function-name> \
   --invocation-type Event out_file.txt; done
 ```
 
@@ -132,7 +134,7 @@ sam build && sam deploy
 ```bash
 for i in {1..2}; do aws lambda invoke \
   --region $REGION \
-  --function-name async-metrics-function \
+  --function-name <function-name> \
   --invocation-type Event out_file.txt; done
 ```
 
@@ -173,12 +175,12 @@ Resources:
       ReservedConcurrentExecutions: 0
 ```
 
-2. Invoke the function asynchronously:
+2. Invoke the function asynchronously. Replace `function-name` with the value from `sam deploy`:
 
 ```bash
 aws lambda invoke \
   --region $REGION \
-  --function-name async-metrics-function \
+  --function-name <function-name> \
   --invocation-type Event out_file.txt
 ```
 
