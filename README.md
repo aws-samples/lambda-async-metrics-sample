@@ -59,7 +59,7 @@ This repo covers 4 troubleshooting scenarios. The analysis for the first two is 
 ### Scenario 1: Troubleshooting delays due to function errors
 Set up and test instructions below.
 
-1. Edit the function code in `hello_world/async-metrics-hello-world.py` to raise an exception:
+1. Edit the function code in `hello_world/app.py` to raise an exception:
 
 ```python
 def handler(event, context):
@@ -73,7 +73,7 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-1. Finally, invoke the function asynchronously:
+3. Finally, invoke the function asynchronously:
 
 ```bash
 aws lambda invoke \
@@ -101,7 +101,7 @@ Resources:
       ReservedConcurrentExecutions: 1
 ```
 
-2. Edit the function code in `async-metrics-hello-world.py` to introduce a 90 second sleep and remove the exception line from previous scenario:
+2. Edit the function code in `hello_world/app.py` to introduce a 90 second sleep and remove the exception line from previous scenario:
 
 ```python
 import time
@@ -117,7 +117,7 @@ def handler(event, context):
 sam build && sam deploy
 ```
 
-1. Invoke the function twice in succession from the command line: 
+4. Invoke the function twice in succession from the command line: 
 
 ```bash
 for i in {1..2}; do aws lambda invoke \
@@ -202,7 +202,7 @@ Resources:
         MaximumEventAgeInSeconds: 60
 ```
 
-1. Invoke the function asynchronously:
+2. Invoke the function asynchronously:
 
 ```bash
 aws lambda invoke \
