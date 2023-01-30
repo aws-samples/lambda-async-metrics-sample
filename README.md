@@ -1,6 +1,6 @@
 # Async invocation metrics for AWS Lambda
 
-This is the sample code accompanying the launch blog for new asynchronous invocation metrics for AWS Lambda.
+This is the sample code accompanying the launch [blog](https://aws.amazon.com/blogs/compute/introducing-new-asynchronous-invocation-metrics-for-aws-lambda/) for new asynchronous invocation metrics for AWS Lambda.
 
 ## Pre-requisites
 1. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
@@ -54,7 +54,7 @@ FUNCTION_NAME=$(aws cloudformation describe-stacks \
 ```
 
 ## Troubleshooting scenarios
-This repo covers 4 troubleshooting scenarios. The analysis for the first two is covered in depth in the blog. We will include only the instructions to configure and test them here. There are dependencies between the scenarios and steps must be executed sequentially.
+This repo covers 4 troubleshooting scenarios. The analysis for the first two is covered in depth in the [blog](https://aws.amazon.com/blogs/compute/introducing-new-asynchronous-invocation-metrics-for-aws-lambda/). We will include only the instructions to configure and test them here. There are dependencies between the scenarios and steps must be executed sequentially.
 
 ### Scenario 1: Troubleshooting delays due to function errors
 Set up and test instructions below.
